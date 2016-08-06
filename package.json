@@ -1,0 +1,36 @@
+
+{
+  "name": "tok-server",
+  "version": "1.0.0",
+  "description": "",
+  "keywords": [
+    "tok"
+  ],
+  "author": {
+    "name": "",
+    "email": "",
+    "url": ""
+  },
+  "homepage": "",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/talkk/tok-server"
+  },
+
+  "engines": {
+    "node": ">= 0.6.0",
+    "npm": ">= 1.0.0"
+  },
+
+  "dependencies": {
+		"express": "~4.0.0",
+        "mongoose": "~4.1.11",
+        "body-parser": "~1.0.1",
+		"socket.io": "~1.4.5"
+  },
+  "devDependencies": {},
+  "bundleDependencies": [],
+
+  "private": true,
+  "main": "server.js"
+}
