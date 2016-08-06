@@ -2,12 +2,23 @@ var express = require('express');
 var app = express();
 var bodyParser = require('body-parser');
 var mongoose   = require('mongoose');
-//mongoose.connect('mongodb://node:node@novus.modulusmongo.net:27017/Iganiq8o');
+
+var databaseURL = 'mongodb://test1:test1@ds011873.mlab.com:11873/rumble';
+var port = process.env.OPENSHIFT_NODEJS_PORT || 8080;   
+var ipaddress = process.env.OPENSHIFT_NODEJS_IP || '127.0.0.1';
+
+// connect to our database
+mongoose.connect(databaseURL, function (error) {
+    // Do things once connected
+    if (error) {
+        console.log('Database error or database connection error ' + error);
+    }
+    console.log('Database state is ' + mongoose.connection.readyState);
+});
 
 app.use(bodyParser.urlencoded({extended: true}));
 app.use(bodyParser.json());
 
-var port = process.env.PORT || 8080;
 
 // ROUTES FOR OUR API
 // ==============================================
@@ -33,5 +44,9 @@ router.get('/', function(req, res) {
 // ==============================================
 app.use('/api', router);
 
-app.listen(port);
+// START THE SERVER
+// ==============================================
+var http = require('http');
+var httpServer = http.createServer(app);
+httpServer.listen(port, ipaddress);
 console.log('Magic happens on port ' + port);
