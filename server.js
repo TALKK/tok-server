@@ -82,7 +82,61 @@ router.route('/login')
 					Messenger.SuccessMessage(res, 'user found', {userID:person._id, setupComplete:person.setupComplete});
 				}
 		});
-	})
+	});
+	
+// SETUPISCOMPLETE
+router.route('/setupIsComplete')
+	.post(function(req,res){
+		var user = new User();
+		user.userID = req.body.userID;
+
+		User.findOne({'_id': user.userID}, function(err, person){
+				if(err){
+					Messenger.ErrorMessage(res, 'setup is complete', err);
+					return
+				}
+				else if(person == null){
+					Messenger.ErrorMessage(res, 'setup is complete', 'User not found');
+					
+				}
+				else if(user.userID == person._id){
+					Messenger.SuccessMessage(res, 'user found', {userID:person._id, setupComplete:person.setupComplete});
+				}
+		});
+	});
+	
+// UPDATESEEDWORD
+router.route('/updateSeedWord')
+	.post(function(req,res){
+		var user = new User();
+		user.userID = req.body.userID;
+		user.seedWord = req.body.seedWord;
+
+		User.findOne({'_id': user.userID}, function(err, person){
+				if(err){
+					Messenger.ErrorMessage(res, 'update seed word', err);
+					return
+				}
+				else if(person == null){
+					Messenger.ErrorMessage(res, 'update seed word', 'User not found');
+					
+				}
+				else if(user.userID == person._id){
+					person.seedWord = user.seedWord;
+					user.save(function(err, person){
+						if(err){
+							Messenger.ErrorMessage(res, 'seed word update', err);
+						}
+						else{
+							Messenger.SuccessMessage(res, 'seed word update', {userID:person._id});
+						}
+					})
+				}
+		});
+	});
+
+	
+	
 
 
 // REGISTER OUR ROUTES
@@ -97,3 +151,4 @@ var http = require('http');
 var httpServer = http.createServer(app);
 httpServer.listen(port, ipaddress);
 console.log('Magic happens on port ' + port);
+//
