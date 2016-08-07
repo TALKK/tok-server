@@ -135,7 +135,27 @@ router.route('/updateSeedWord')
 		});
 	});
 
-	
+// PROFILE
+router.route('/profile')
+	.post(function(req,res){
+		var user = new User();
+		user.userID = req.body.userID;
+
+		User.findOne({'_id': user.userID}, function(err, person){
+				if(err){
+					Messenger.ErrorMessage(res, 'profile', err);
+					return
+				}
+				else if(person == null){
+					Messenger.ErrorMessage(res, 'profile', 'User not found');
+					
+				}
+				else if(user.userID == person._id){
+					Messenger.SuccessMessage(res, 'profile', {userID:person._id, facebookPhotoURL: person.facebookPhotoURL, name: person.name, myConversations: person.myConversations, inspiredConversations: person.inspiredConversations});
+				}
+		});
+	});
+
 	
 
 
