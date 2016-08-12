@@ -9,6 +9,7 @@ var ipaddress = process.env.OPENSHIFT_NODEJS_IP || '127.0.0.1';
 
 // Initialize our schemas
 var User = require('./app/models/user');
+var Conversation = require('./app/models/conversation');
 
 // Initialize our helper functions
 var Messenger = require('./helpers/messenger');
@@ -151,13 +152,37 @@ router.route('/profile')
 					
 				}
 				else if(user.userID == person._id){
-					Messenger.SuccessMessage(res, 'profile', {userID:person._id, facebookPhotoURL: person.facebookPhotoURL, name: person.name, myConversations: person.myConversations, inspiredConversations: person.inspiredConversations});
+					Messenger.SuccessMessage(res, 'profile', {userID:person._id, facebookPhotoURL: person.facebookPhotoURL, name: person.name, myConversations: ReturnOnlyFinishedConversations(res, person.myConversations), inspiredConversations: ReturnOnlyFinishedConversations(res, person.inspiredConversations)});
 				}
 		});
 	});
 
 	
+// HELPER METHODS TO BE EXTRACTED
+// ==============================================
 
+	function ReturnOnlyFinishedConversations(res, convoList){
+		newArr = [];
+		for (var i = 0, len = convoList.length; i < len; i++) {
+			Conversation.findOne({'_id': convoList[i]}, function(err, conversation) {
+				if(err) {
+					Messenger.ErrorMessage(res, 'return only finished conversations', err);
+					return
+				}
+				else if(conversation == null){
+					Messenger.ErrorMessage(res, 'return only finished conversations', 'No conversation with this ID was found: ' + convoList[i]);
+				}
+				else if(conversation == convoList[i])
+				{
+					if(conversation.finishedToking){
+						newArr.push(convoList[i]);
+					}
+				}
+			})
+		}
+		return newArr;
+	}
+	
 
 // REGISTER OUR ROUTES
 // ==============================================
