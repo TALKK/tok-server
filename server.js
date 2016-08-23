@@ -229,7 +229,6 @@ router.route('/readyToTok')
 			
 		});
 	});
-
 	
 // HELPER METHODS TO BE EXTRACTED
 // ==============================================
