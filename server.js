@@ -10,6 +10,7 @@ var ipaddress = process.env.OPENSHIFT_NODEJS_IP || '127.0.0.1';
 // Initialize our schemas
 var User = require('./app/models/user');
 var Conversation = require('./app/models/conversation');
+var ReadyToTok = require('./app/models/readyToTok');
 
 // Initialize our helper functions
 var Messenger = require('./helpers/messenger');
@@ -156,6 +157,54 @@ router.route('/profile')
 				}
 		});
 	});
+
+
+
+//ADDED BY RISHABH 
+
+// READYTOTOK
+router.route('/readyToTok')
+	.post(function(req,res){
+		var readyToTok = new ReadyToTok();
+		readyToTok.userID = req.body.userID;
+		readyToTok.longitude = req.body.longitude;
+		readyToTok.lattitude = req.body.lattitude;
+		readyToTok.submissionTime = req.body.submissionTime;
+
+		ReadyToTok.findOne({'_id': readyToTok.userID}, function(err, person){
+				if(err){
+					Messenger.ErrorMessage(res, 'ready to tok', err);
+					return
+				}
+				else if(readyToTok.userID == person._id){
+					Messenger.ErrorMessage(res, 'ready to tok', 'tok request in process already');
+					
+				}
+				else if(person._id == null){
+					person.userID = readyToTok.userID;
+					person.longitude = readyToTok.longitude;
+					person.lattitude = readyToTok.lattitude;
+					person.submissionTime = readyToTok.submissionTime;
+					person.conversationId = null;	
+
+					readyToTok.save(function(err, person){
+						if(err){
+							Messenger.ErrorMessage(res, 'ready to tok save error', err);
+						}
+						else{
+							Messenger.SuccessMessage(res, 'ready to tok request added', {userID:person.userID});
+						}
+					})
+				}
+		});
+	});
+
+
+//ENDED BY RISHABH 
+
+
+
+
 
 	
 // HELPER METHODS TO BE EXTRACTED
