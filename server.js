@@ -10,6 +10,7 @@ var ipaddress = process.env.OPENSHIFT_NODEJS_IP || '127.0.0.1';
 // Initialize our schemas
 var User = require('./app/models/user');
 var Conversation = require('./app/models/conversation');
+var ReadyToTok = require('./app/models/readyToTok');
 
 // Initialize our helper functions
 var Messenger = require('./helpers/messenger');
@@ -47,12 +48,35 @@ router.use(function(req, res, next){
 // ROUTES FOR OUR API
 // ==============================================
 
-// test route
+/**
+ * @api {get} / Test endpoint for API
+ * @apiName Endpoint Tester
+ */
+
 router.get('/', function(req, res) {
     res.json({ message: 'hooray! welcome to our api!' });   
 });
 
-// LOGIN
+/**
+ * @api {post} /login Create new user or login
+ * @apiName Login
+ * @apiDescription If fbUserID does not exist, 
+ * a new user will be created. If it does exist,
+ * we return the userID
+ *
+ * @apiParam {String} fbUserID User's ID returned by Facebook.
+ * @apiParam {String} token User's session token returned by Facebook.
+ * @apiParam {Date} tokenExpires User's session token expiration date returned by Facebook.
+ * @apiParam {String} Name User's name returned by Facebook.
+ * @apiParam {String} facebookPhotoURL User's profile picture URL.
+ *
+ * @apiSuccess {String} message Success or error message.
+ * @apiSuccess {Boolean} Success  Boolean that is true if no errors occurred.
+ * @apiSuccess {Object} Contents  Only appears if no errors occur. Object contains returned data. 
+ * @apiSuccess {String} userID  A property of Contents. UserID unique to our database that represents user.
+ * @apiSuccess {Boolean} setupComplete  A property of Contents. Flag that is true if user as submitted a seed word.
+ */
+
 router.route('/login')
 	.post(function(req,res){
 		var user = new User();
@@ -85,7 +109,21 @@ router.route('/login')
 		});
 	});
 	
-// SETUPISCOMPLETE
+/**
+ * @api {post} /setupIsComplete Check if user has submitted a seed word
+ * @apiName SetupIsComplete
+ * @apiDescription Check if user has submitted a seed word. Error is returned 
+ * if userID does not exist.
+ *
+ * @apiParam {String} userID UserID unique to our database that represents user.
+ *
+ * @apiSuccess {String} message Success or error message.
+ * @apiSuccess {Boolean} Success  Boolean that is true if no errors occurred.
+ * @apiSuccess {Object} Contents  Only appears if no errors occur. Object contains returned data. 
+ * @apiSuccess {String} userID  A property of Contents. UserID unique to our database that represents user.
+ * @apiSuccess {Boolean} setupComplete  A property of Contents. Flag that is true if user as submitted a seed word.
+ */
+
 router.route('/setupIsComplete')
 	.post(function(req,res){
 		var user = new User();
@@ -154,6 +192,41 @@ router.route('/profile')
 				else if(user.userID == person._id){
 					Messenger.SuccessMessage(res, 'profile', {userID:person._id, facebookPhotoURL: person.facebookPhotoURL, name: person.name, myConversations: ReturnOnlyFinishedConversations(res, person.myConversations), inspiredConversations: ReturnOnlyFinishedConversations(res, person.inspiredConversations)});
 				}
+		});
+	});
+
+
+// READYTOTOK
+router.route('/readyToTok')
+	.post(function(req,res){
+		var readyToTok = new ReadyToTok();
+		readyToTok.userID = req.body.userID;
+		readyToTok.longitude = req.body.longitude;
+		readyToTok.latitude = req.body.latitude;
+		readyToTok.submissionTime = (new Date()).getTime();
+		readyToTok.conversationId = null;
+
+		ReadyToTok.findOne({'_id': readyToTok.userID}, function(err, person){
+			if(err){
+				Messenger.ErrorMessage(res, 'ready to tok', err);
+				return
+			}
+			else if(person == null){
+
+				readyToTok.save(function(err, person){
+					if(err){
+						Messenger.ErrorMessage(res, 'ready to tok save error', err);
+					}
+					else{
+						Messenger.SuccessMessage(res, 'ready to tok request added', {userID:person.userID});
+					}
+				})
+			}
+			else if(readyToTok.userID == person._id){
+				Messenger.ErrorMessage(res, 'ready to tok', 'tok request in process already');
+				
+			}
+			
 		});
 	});
 
